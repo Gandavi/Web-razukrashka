@@ -29,7 +29,7 @@ async function convertSVGtoPNG(svgElement) {
 
 // Обработчик нажатия кнопки
 document.getElementById('convertAndDownloadButton').addEventListener('click', async () => {
-    const svgElement = document.getElementById('mySvg');
+    const svgElement = document.getElementById('drawing');
     if (!svgElement) return alert('Элемент SVG не найден!');
 
     try {
