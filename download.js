@@ -1,24 +1,46 @@
-document.getElementById('downloadButton').addEventListener('click', function() {
-    // Получаем элемент SVG
-    const svg = document.querySelector('svg');
+// Функция для сохранения SVG в виде PNG
+async function convertSVGtoPNG(svgElement) {
+    return new Promise((resolve, reject) => {
+        try {
+            // Конвертирование SVG в dataURI
+            const serializer = new XMLSerializer();
+            const svgContent = serializer.serializeToString(svgElement);
+            
+            // Создание временного canvas
+            const canvas = document.createElement("canvas");
+            canvas.width = svgElement.clientWidth;
+            canvas.height = svgElement.clientHeight;
+        
+            // Извлекаем рендеринг SVG на холсте
+            const ctx = canvas.getContext("2d");
+            const img = new Image();
+            img.onload = () => {
+                ctx.drawImage(img, 0, 0);
+                
+                // Сохраняем картинку как PNG
+                resolve(canvas.toDataURL("image/png"));
+            };
+            img.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgContent)}`;
+        } catch(err) {
+            reject(err);
+        }
+    });
+}
 
-    // Преобразуем содержимое элемента SVG в строку
-    let svgData = new XMLSerializer().serializeToString(svg);
+// Обработчик нажатия кнопки
+document.getElementById('convertAndDownloadButton').addEventListener('click', async () => {
+    const svgElement = document.getElementById('mySvg');
+    if (!svgElement) return alert('Элемент SVG не найден!');
 
-    // Создаем Blob объект для хранения данных файла
-    const blob = new Blob([svgData], { type: 'image/svg+xml' });
-
-    // Генерируем ссылку для скачивания
-    const downloadLink = window.URL.createObjectURL(blob);
-
-    // Создаем временную ссылку для начала процесса скачивания
-    const tempLink = document.createElement('a');
-    tempLink.href = downloadLink;
-    tempLink.download = 'example.svg';
-    tempLink.click();
-
-    // Освобождаем ресурсы после завершения операции
-    setTimeout(() => {
-        window.URL.revokeObjectURL(downloadLink);
-    }, 100);
+    try {
+        const dataUrl = await convertSVGtoPNG(svgElement);
+        
+        // Генерация ссылки для скачивания
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = 'output.png'; // Имя загружаемого файла
+        link.click(); // Начинаем загрузку
+    } catch(e) {
+        console.error(e); // Логируем ошибку
+    }
 });
